@@ -291,11 +291,14 @@ def make_chemdf(re_table, ofname):
                     count += 1
 
             v_str = "#" + line + "\n"
-            v_str += "v_" + str(j) + " = lambda k, M, "
+            v_str += '@numba.njit(cache=True)\n'
+            v_str += 'def v_' + str(j) + '(k, M, '
+#             v_str += "v_" + str(j) + " = lambda k, M, "
 
             for term in reac_args_noM:
                 v_str += term + ", "
-            v_str = v_str[0:-2] + " : "
+#             v_str = v_str[0:-2] + " : "
+            v_str = v_str[0:-2] + "):\n\t return "
             v_str += 'k[' + str(j) + ']*'
             for term in reac:
                 if term[0]!=1:
@@ -349,7 +352,7 @@ def make_chemdf(re_table, ofname):
     chem_dict_r = {}
     spec_list = []
         
-    ofstr = "#!/usr/bin/python\n\nfrom scipy import *\nimport numpy as np\nfrom phy_const import kb, Navo\nimport vulcan_cfg\n\n"
+    ofstr = "#!/usr/bin/python\n\nfrom scipy import *\nimport numpy as np\nfrom numba_funcs import *\nimport numba\nfrom phy_const import kb, Navo\nimport vulcan_cfg\n\n"
     ofstr += "'''\n## Reaction ##\n\n"
     ofstr += re_table + "\n\n"
 
@@ -375,8 +378,8 @@ def make_chemdf(re_table, ofname):
     
     ofstr += '\n\n# store the products and the reactants in the 1st and the 2nd element for reaction j (without M)\n' + re_dict_str
     ofstr += '\n\n# store the products and the reactants in the 1st and the 2nd element for reaction j (with M)\n' + re_wM_dict_str
-    
-    ost = '\n\ndef chemdf(y, M, k): \n' # Note: making M as input!!!
+    ost = '@numba.njit(cache=True)\n'
+    ost += 'def chemdf(y, M, k): \n' # Note: making M as input!!!
     ost += '\t y = np.transpose(y) \n'.expandtabs(3)
     ost += '\t dydt = np.zeros(shape=y.shape) \n'.expandtabs(3)
 
@@ -666,8 +669,9 @@ def make_jac(ni, nr, ofname):
     dy = Matrix(chemistry.df(y,M,k))
     x = Matrix(y)
     jac = dy.jacobian(x)
-
-    jstr = '\ndef symjac(y, M, k): \n'
+    
+    jstr = '\n@numba.njit(cache=True)\n'
+    jstr += 'def symjac(y, M, k): \n'
     jstr += '\t nz = vulcan_cfg.nz\n'.expandtabs(3)
     jstr += '\t dfdy = np.zeros(shape=[ni*nz, ni*nz])   \n'.expandtabs(3)
     jstr += '\t indx = [] \n'.expandtabs(3)
@@ -699,8 +703,9 @@ def make_neg_jac(ni, nr, ofname):
     dy = Matrix(chemistry.df(y,M,k))
     x = Matrix(y)
     jac = dy.jacobian(x)
-
-    jstr = '\ndef neg_symjac(y, M, k): \n'
+    
+    j_str = '\n @numba.njit(cache=True)\n'
+    jstr = 'def neg_symjac(y, M, k): \n'
     jstr += '\t nz = vulcan_cfg.nz\n'.expandtabs(3)
     jstr += '\t dfdy = np.zeros(shape=[ni*nz, ni*nz])   \n'.expandtabs(3)
     jstr += '\t indx = [] \n'.expandtabs(3)

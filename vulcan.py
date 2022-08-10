@@ -49,6 +49,7 @@
 
 # import public modules
 import numpy as np
+import numpy.core.multiarray
 import matplotlib.pyplot as plt
 import matplotlib.legend as lg
 import scipy

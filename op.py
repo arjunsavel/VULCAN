@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import matplotlib.legend as lg
 import time, os, pickle
 import csv, ast
+from numba_funcs import *
 # TEST numba
 # from numba import njit, jit
 
@@ -1731,7 +1732,9 @@ class ODESolver(object):
         # c0 = 1./(r*h) where r = 1. + 1./2.**0.5
         r = 1. + 1./2.**0.5
         c0 = 1./(r*var.dt)
-        dfdy = neg_achemjac(y, atm.M, var.k)
+        k = make_numba_dict(var.k)
+        # so long as mutations don't happen!
+        dfdy = neg_achemjac(y, atm.M, k)
         np.fill_diagonal(dfdy, c0 + np.diag(dfdy)) 
         j_indx = []
         
@@ -1795,7 +1798,9 @@ class ODESolver(object):
 
         r = 1. + 1./2.**0.5
         c0 = 1./(r*var.dt)
-        dfdy = neg_achemjac(y, atm.M, var.k)
+        k = make_numba_dict(var.k)
+        # so long as mutations don't happen!
+        dfdy = neg_achemjac(y, atm.M, k)
         np.fill_diagonal(dfdy, c0 + np.diag(dfdy)) 
         j_indx = []
         
@@ -1847,7 +1852,9 @@ class ODESolver(object):
 
         r = 1. + 1./2.**0.5
         c0 = 1./(r*var.dt)
-        dfdy = neg_achemjac(y, atm.M, var.k)
+        k = make_numba_dict(var.k)
+        # so long as mutations don't happen!
+        dfdy = neg_achemjac(y, atm.M, k)
         np.fill_diagonal(dfdy, c0 + np.diag(dfdy)) 
         j_indx = []
         
@@ -1911,7 +1918,9 @@ class ODESolver(object):
 
         r = 1. + 1./2.**0.5
         c0 = 1./(r*var.dt)
-        dfdy = neg_achemjac(y, atm.M, var.k)
+        k = make_numba_dict(var.k)
+        # so long as mutations don't happen!
+        dfdy = neg_achemjac(y, atm.M, k)
         np.fill_diagonal(dfdy, c0 + np.diag(dfdy)) 
         j_indx = []
         
@@ -1968,7 +1977,9 @@ class ODESolver(object):
         # c0 = 1./(r*h) where r = 1. + 1./2.**0.5
         r = 1. + 1./2.**0.5
         c0 = 1./(r*var.dt)
-        dfdy = neg_achemjac(y, atm.M, var.k)
+        k = make_numba_dict(var.k)
+        # so long as mutations don't happen!
+        dfdy = neg_achemjac(y, atm.M, k)
         np.fill_diagonal(dfdy, c0 + np.diag(dfdy)) 
         j_indx = []
         
@@ -2445,7 +2456,8 @@ class Ros2(ODESolver):
             jac_tot = self.lhs_jac_no_mol
     
         r = 1. + 1./2.**0.5
-
+        
+        k = make_numba_dict(k)
         df = chemdf(y,M,k).flatten() + diffdf(y, atm).flatten()
         lhs = jac_tot(var, atm)
         
@@ -2558,7 +2570,8 @@ class Ros2(ODESolver):
             jac_tot = self.lhs_jac_no_mol_fix_all_bot
     
         r = 1. + 1./2.**0.5
-
+        
+        k = make_numba_dict(k)
         df = chemdf(y,M,k).flatten() + diffdf(y, atm).flatten()
         lhs = jac_tot(var, atm)
         
